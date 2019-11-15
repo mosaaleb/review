@@ -1,0 +1,58 @@
+#! /bin/bash
+
+source ~/.rvm/scripts/rvm
+
+PULL_REQUEST_URL=$1
+BRANCH_NAME=$2
+REPOSITORY=$( echo "$PULL_REQUEST_URL" | cut -f1-5 -d"/")".git"
+PROJECT_NAME=$( echo "$PULL_REQUEST_URL" | cut -f5-5 -d"/")
+
+database_setup () {
+    rails db:drop db:create db:migrate db:seed
+}
+
+# Cloning
+echo -e "\e[5mCloning Repository \e[5mBlink"
+git clone $REPOSITORY &> /dev/null
+echo -e "\e[31mCloned $PROJECT_NAME\e[0m"
+
+cd $PROJECT_NAME
+
+# Branch Switching
+echo -e "Switching Branch"
+git checkout $BRANCH_NAME &> /dev/null
+echo -e "\e[31mSwitched to $BRANCH_NAME branch\e[0m"
+
+# Getting ruby version
+RUBY_VERSION="$(grep -m1 "" .ruby-version)"
+pwd
+
+echo "Detecting used ruby version"
+rvm use $RUBY_VERSION; &> dev/null
+echo -e "\e[31mSwitched to $RUBY_VERSION version\e[0m"
+
+# Executing bundle install
+echo -e "Executing Bundle"
+bundle
+echo -e "\e[31mGems Installed Successfully\e[0m"
+
+# Database
+echo -e "Starting Setup Database Setup" 
+database_setup
+if [ $? -eq 0 ]; then
+    echo "Database created and migrated"
+else
+    yarn install --check-files && database_setup
+fi
+
+
+# Replace with your code editor
+code .
+# Starting the server
+rails s
+if [ $? -eq 0 ]; then
+    echo "Don't Close the terminal"
+    echo "Rails server is running"
+else
+    echo "Server Starting error"
+fi
