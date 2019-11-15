@@ -4,7 +4,7 @@
 **How to use**
 
 ```bash
-git clone https://github.com/mosaaleb/review.git
+git clone git@github.com:mosaaleb/review.git
 cd review
 chmod +x review
 cp review /usr/bin
